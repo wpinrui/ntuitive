@@ -6,10 +6,7 @@
   // === Constants ===
   var OVERFLOW_BTN_SELECTOR =
     'button[id^="content-item-overflow-menu-button-"]';
-  var DOWNLOAD_ANALYTICS_ID =
-    "components.directives.content-item-base.overflowMenu.global.download.link";
-  var OUTLINE_RE = /\/ultra\/courses\/[^/]+\/outline/;
-  var MENU_WAIT_TIMEOUT = 2000;
+  var OUTLINE_RE = /\/ultra\/courses\/([^/]+)\/outline/;
   var SCAN_DELAY = 300;
 
   var DOWNLOAD_SVG =
@@ -46,91 +43,62 @@
     (document.head || document.documentElement).appendChild(style);
   }
 
-  // === Menu Helpers ===
-  function snapshotPopovers() {
-    var set = new Set();
-    document.querySelectorAll('[role="presentation"]').forEach(function (el) {
-      set.add(el);
-    });
-    return set;
+  // === Helpers ===
+  function getCourseId() {
+    var match = location.pathname.match(OUTLINE_RE);
+    return match ? match[1] : null;
   }
 
-  function waitForMenu(existing) {
-    return new Promise(function (resolve) {
-      var timeout = setTimeout(function () {
-        menuObs.disconnect();
-        resolve(null);
-      }, MENU_WAIT_TIMEOUT);
+  function getContentId(button) {
+    var match = (button.id || "").match(/content-item-overflow-menu-button-(.+)$/);
+    return match ? match[1] : null;
+  }
 
-      var menuObs = new MutationObserver(function () {
-        var popovers = document.querySelectorAll('[role="presentation"]');
-        for (var i = 0; i < popovers.length; i++) {
-          var p = popovers[i];
-          if (!existing.has(p)) {
-            p.style.visibility = "hidden";
-            var menu = p.querySelector('ul[role="menu"]');
-            if (menu) {
-              clearTimeout(timeout);
-              menuObs.disconnect();
-              resolve(menu);
-              return;
-            }
-          }
+  function getXsrfToken() {
+    var match = document.cookie.match(/xsrf:([^,;]+)/);
+    return match ? match[1] : "";
+  }
+
+  // === Download via API ===
+  function triggerDownload(courseId, contentId) {
+    var apiBase =
+      "/learn/api/public/v1/courses/" + courseId +
+      "/contents/" + contentId + "/attachments";
+
+    fetch(apiBase, {
+      credentials: "same-origin",
+      headers: { "X-Blackboard-XSRF": getXsrfToken() }
+    })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (data.results && data.results.length > 0) {
+          var url = apiBase + "/" + data.results[0].id + "/download";
+          var a = document.createElement("a");
+          a.href = url;
+          a.style.display = "none";
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
         }
-      });
-      menuObs.observe(document.body, { childList: true, subtree: true });
-    });
-  }
-
-  function closeMenu() {
-    document.dispatchEvent(
-      new KeyboardEvent("keydown", {
-        key: "Escape",
-        code: "Escape",
-        keyCode: 27,
-        bubbles: true,
-        cancelable: true
       })
-    );
-  }
-
-  // === Download Trigger ===
-  // Opens the overflow menu hidden, clicks the download item, menu auto-closes.
-  // If no download item exists, falls back to showing the menu normally.
-  function triggerDownload(overflowBtn) {
-    overflowBtn.style.display = "";
-    var existing = snapshotPopovers();
-    overflowBtn.click();
-
-    waitForMenu(existing).then(function (menu) {
-      if (!menu) {
-        overflowBtn.style.display = "none";
-        return;
-      }
-
-      var dlItem = menu.querySelector(
-        'li[data-analytics-id="' + DOWNLOAD_ANALYTICS_ID + '"]'
-      );
-      if (dlItem) {
-        dlItem.click();
-        overflowBtn.style.display = "none";
-      } else {
-        // No download option — show menu normally as fallback
-        var popover = menu.closest('[role="presentation"]');
-        if (popover) popover.style.visibility = "";
-        overflowBtn.style.display = "none";
-      }
-    });
+      .catch(function (err) {
+        console.error("[NTULearn Nav Fix] Download failed:", err);
+      });
   }
 
   // === Scanning ===
-  // Replace each ... button with a download button immediately (no inspection).
   function scan() {
+    var courseId = getCourseId();
+    if (!courseId) return;
+
     var buttons = document.querySelectorAll(OVERFLOW_BTN_SELECTOR);
     for (var i = 0; i < buttons.length; i++) {
       var overflowBtn = buttons[i];
       if (processed.has(overflowBtn)) continue;
       processed.add(overflowBtn);
+
+      var contentId = getContentId(overflowBtn);
+      if (!contentId) continue;
 
       overflowBtn.style.display = "none";
 
@@ -143,13 +111,13 @@
       dlBtn.title = fileName ? "Download " + fileName : "Download";
       dlBtn.setAttribute("aria-label", dlBtn.title);
 
-      (function (btn) {
+      (function (cId) {
         dlBtn.addEventListener("click", function (e) {
           e.preventDefault();
           e.stopPropagation();
-          triggerDownload(btn);
+          triggerDownload(courseId, cId);
         });
-      })(overflowBtn);
+      })(contentId);
 
       overflowBtn.parentElement.insertBefore(dlBtn, overflowBtn);
     }
