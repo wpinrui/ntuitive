@@ -2,35 +2,27 @@
   "use strict";
 
   // === Constants ===
-  const EXPAND_DELAY = 0; // ms between folder clicks (tune as needed)
+  const EXPAND_DELAY = 0; // ms before clicking the next folder (tune as needed)
   const FOLDER_BTN_SELECTOR =
     'button[data-analytics-id="content.item.folder.toggleFolder.button"][aria-expanded="false"]';
   const OUTLINE_RE = /\/ultra\/courses\/[^/]+\/outline$/;
 
   // === State ===
-  const clicked = new WeakSet();
   let observer = null;
   let debounceTimer = null;
 
   // === Core ===
-  function expandAllFolders() {
-    const buttons = document.querySelectorAll(FOLDER_BTN_SELECTOR);
-    let delay = 0;
-    buttons.forEach(function (btn) {
-      if (clicked.has(btn)) return;
-      clicked.add(btn);
-      if (EXPAND_DELAY === 0) {
-        btn.click();
-      } else {
-        setTimeout(function () { btn.click(); }, delay);
-        delay += EXPAND_DELAY;
-      }
-    });
+  // Click ONE collapsed folder per pass. Each click can trigger a React
+  // re-render that replaces sibling buttons, so we let the MutationObserver
+  // cascade: click one → DOM updates → observer fires → click next.
+  function expandOneFolder() {
+    const btn = document.querySelector(FOLDER_BTN_SELECTOR);
+    if (btn) btn.click();
   }
 
   function scheduleExpand() {
     clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(expandAllFolders, 100);
+    debounceTimer = setTimeout(expandOneFolder, EXPAND_DELAY);
   }
 
   // === Observer lifecycle ===
@@ -38,7 +30,7 @@
     if (observer || !document.body) return;
     observer = new MutationObserver(scheduleExpand);
     observer.observe(document.body, { childList: true, subtree: true });
-    expandAllFolders();
+    expandOneFolder();
   }
 
   function stopObserver() {
