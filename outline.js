@@ -3,6 +3,7 @@
 
   // === Constants ===
   const EXPAND_DELAY = 0; // ms before clicking the next folder (tune as needed)
+  const MAX_EXPAND_DEPTH = 0; // 0 = top-level only, 1 = +subfolders, Infinity = all
   const FOLDER_BTN_SELECTOR =
     'button[data-analytics-id="content.item.folder.toggleFolder.button"]';
   const OUTLINE_RE = /\/ultra\/courses\/[^/]+\/outline$/;
@@ -15,6 +16,18 @@
   let debounceTimer = null;
 
   // === Core ===
+  // Count how many folder-contents regions this button is nested inside.
+  // Top-level folder = 0, subfolder = 1, etc.
+  function getFolderDepth(btn) {
+    let depth = 0;
+    let el = btn.parentElement;
+    while (el) {
+      if (el.id && el.id.startsWith("folder-contents-")) depth++;
+      el = el.parentElement;
+    }
+    return depth;
+  }
+
   // Click ONE collapsed folder per pass. Each click can trigger a React
   // re-render that replaces sibling buttons, so we let the MutationObserver
   // cascade: click one → DOM updates → observer fires → click next.
@@ -26,14 +39,18 @@
       }
     });
     // Find first collapsed folder we haven't touched yet
-    const btn = document.querySelector(
+    const buttons = document.querySelectorAll(
       FOLDER_BTN_SELECTOR + '[aria-expanded="false"]'
     );
-    if (!btn) return;
-    const id = btn.getAttribute("aria-controls");
-    if (expanded.has(id)) return;
-    expanded.add(id);
-    btn.click();
+    for (let i = 0; i < buttons.length; i++) {
+      const btn = buttons[i];
+      const id = btn.getAttribute("aria-controls");
+      if (expanded.has(id)) continue;
+      if (getFolderDepth(btn) > MAX_EXPAND_DEPTH) continue;
+      expanded.add(id);
+      btn.click();
+      return;
+    }
   }
 
   function scheduleExpand() {
