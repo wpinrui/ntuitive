@@ -14,17 +14,28 @@
     "the", "to", "with",
   ]);
 
+  // === Icons (inline SVG) ===
+  const ICON_EYE = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+  const ICON_EYE_OFF = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+
   // === CSS ===
+  const BR = "8px"; // shared border-radius
   function injectStyles() {
     const style = document.createElement("style");
     style.textContent = `
+      ${POPOVER_SELECTOR} {
+        border-radius: ${BR} !important;
+      }
+      .${P}-wrapper {
+        padding: 10px;
+      }
       .${P}-search {
         width: 100%;
-        padding: 10px 12px;
-        margin-bottom: 8px;
-        border: 1px solid rgba(255,255,255,0.2);
-        border-radius: 6px;
-        background: rgba(255,255,255,0.08);
+        padding: 10px 14px;
+        margin-bottom: 6px;
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: ${BR} !important;
+        background: rgba(0,0,0,0.2);
         color: inherit;
         font-size: 14px;
         font-family: inherit;
@@ -32,8 +43,8 @@
         box-sizing: border-box;
       }
       .${P}-search:focus {
-        border-color: rgba(255,255,255,0.4);
-        background: rgba(255,255,255,0.12);
+        border-color: rgba(255,255,255,0.25);
+        background: rgba(0,0,0,0.3);
       }
       .${P}-search::placeholder {
         color: rgba(255,255,255,0.5);
@@ -42,24 +53,29 @@
         list-style: none;
         margin: 0;
         padding: 0;
-        max-height: 400px;
+        max-height: 300px;
         overflow-y: auto;
       }
       .${P}-item {
         margin: 0;
         padding: 0;
       }
-      .${P}-item a {
-        display: block;
-        padding: 10px 12px;
-        border-radius: 6px;
-        text-decoration: none;
-        color: inherit;
+      .${P}-item-row {
+        display: flex;
+        align-items: center;
+        border-radius: ${BR};
         transition: background 0.15s;
       }
-      .${P}-item a:hover,
-      .${P}-item a:focus {
+      .${P}-item-row:hover {
         background: rgba(255,255,255,0.08);
+      }
+      .${P}-item-row a {
+        flex: 1;
+        min-width: 0;
+        display: block;
+        padding: 10px 14px;
+        text-decoration: none;
+        color: inherit;
         outline: none;
       }
       .${P}-course-name {
@@ -73,48 +89,41 @@
         margin-right: 8px;
       }
       .${P}-no-results {
-        padding: 20px 12px;
+        padding: 20px 14px;
         text-align: center;
         opacity: 0.5;
         font-size: 14px;
       }
-      .${P}-item-row {
-        display: flex;
-        align-items: flex-start;
-      }
-      .${P}-item-row a {
-        flex: 1;
-        min-width: 0;
-      }
-      .${P}-hide-btn {
+      .${P}-vis-btn {
         flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        margin-right: 8px;
         background: none;
         border: none;
+        border-radius: 6px;
         color: inherit;
-        opacity: 0;
+        opacity: 0.3;
         cursor: pointer;
-        padding: 10px 8px;
-        font-size: 14px;
-        transition: opacity 0.15s;
+        transition: opacity 0.15s, background 0.15s;
       }
-      .${P}-item:hover .${P}-hide-btn,
-      .${P}-hide-btn:focus {
+      .${P}-vis-btn:hover,
+      .${P}-vis-btn:focus {
+        opacity: 0.8;
+        background: rgba(255,255,255,0.08);
+        outline: none;
+      }
+      .${P}-item-hidden .${P}-item-row {
+        opacity: 0.4;
+      }
+      .${P}-item-hidden .${P}-item-row:hover {
+        opacity: 0.6;
+      }
+      .${P}-item-hidden .${P}-vis-btn {
         opacity: 0.5;
-      }
-      .${P}-hide-btn:hover {
-        opacity: 1 !important;
-      }
-      .${P}-item-hidden a {
-        opacity: 0.35;
-      }
-      .${P}-item-hidden .${P}-hide-btn {
-        opacity: 0.4;
-      }
-      .${P}-hidden-count {
-        padding: 6px 12px;
-        font-size: 12px;
-        opacity: 0.4;
-        text-align: center;
       }
     `;
     (document.head || document.documentElement).appendChild(style);
@@ -242,6 +251,7 @@
   }
 
   function matchesCourse(course, q) {
+    if (!q) return true;
     // Word-start matching (avoids "pp" matching "approaches")
     var nameWords = getWords(course.courseName.toLowerCase());
     var idWords = getWords(course.courseId.toLowerCase());
@@ -275,19 +285,16 @@
     function render(query) {
       list.innerHTML = "";
       var q = query.toLowerCase();
-      var isSearching = q.length > 0;
       var matched = courses.filter(function (c) {
         return matchesCourse(c, q);
       });
-      // When not searching, hide hidden courses; when searching, show all
-      var visible = isSearching
-        ? matched
-        : matched.filter(function (c) { return !hidden.has(c.href); });
-      var hiddenCount = isSearching
-        ? 0
-        : matched.length - visible.length;
 
-      if (visible.length === 0 && hiddenCount === 0) {
+      // Sort: visible courses in original order, then hidden at bottom
+      var visibleCourses = matched.filter(function (c) { return !hidden.has(c.href); });
+      var hiddenCourses = matched.filter(function (c) { return hidden.has(c.href); });
+      var sorted = visibleCourses.concat(hiddenCourses);
+
+      if (sorted.length === 0) {
         var msg = document.createElement("li");
         msg.className = P + "-no-results";
         msg.textContent = "No courses found";
@@ -295,7 +302,7 @@
         return;
       }
 
-      visible.forEach(function (course) {
+      sorted.forEach(function (course) {
         var isHidden = hidden.has(course.href);
         var li = document.createElement("li");
         li.className = P + "-item" + (isHidden ? " " + P + "-item-hidden" : "");
@@ -332,8 +339,8 @@
         a.appendChild(meta);
 
         var btn = document.createElement("button");
-        btn.className = P + "-hide-btn";
-        btn.textContent = isHidden ? "+" : "\u00d7";
+        btn.className = P + "-vis-btn";
+        btn.innerHTML = isHidden ? ICON_EYE_OFF : ICON_EYE;
         btn.title = isHidden ? "Show in list" : "Hide from list";
         btn.addEventListener("click", function (e) {
           e.stopPropagation();
@@ -351,21 +358,17 @@
         li.appendChild(row);
         list.appendChild(li);
       });
-
-      if (hiddenCount > 0) {
-        var hint = document.createElement("li");
-        hint.className = P + "-hidden-count";
-        hint.textContent = hiddenCount + " hidden course" + (hiddenCount > 1 ? "s" : "");
-        list.appendChild(hint);
-      }
     }
 
     search.addEventListener("input", function () {
       render(search.value);
     });
 
-    container.appendChild(search);
-    container.appendChild(list);
+    var wrapper = document.createElement("div");
+    wrapper.className = P + "-wrapper";
+    wrapper.appendChild(search);
+    wrapper.appendChild(list);
+    container.appendChild(wrapper);
     render("");
 
     setTimeout(function () {
