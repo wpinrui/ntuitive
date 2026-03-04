@@ -13,6 +13,7 @@
     ".bb-course-navigation",
     ".base-header",
     "course-banner",
+    ".black-panel-header",
     '[data-test-id="course-switcher-popover"]'
   ];
 
