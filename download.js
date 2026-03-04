@@ -30,8 +30,6 @@
   var processed = new WeakSet();
   var observer = null;
   var debounceTimer = null;
-  var inspecting = false;
-  var queue = [];
 
   // === Styles ===
   function injectStyles() {
@@ -84,17 +82,6 @@
     });
   }
 
-  function getVisibleItems(menu) {
-    var items = menu.querySelectorAll('li[role="menuitem"]');
-    var visible = [];
-    for (var i = 0; i < items.length; i++) {
-      if (getComputedStyle(items[i]).display !== "none") {
-        visible.push(items[i]);
-      }
-    }
-    return visible;
-  }
-
   function closeMenu() {
     document.dispatchEvent(
       new KeyboardEvent("keydown", {
@@ -107,42 +94,17 @@
     );
   }
 
-  // === Download Button ===
-  function createDownloadButton(overflowBtn, mode) {
-    var btn = document.createElement("button");
-    btn.className = "ntulearn-dl-btn";
-    btn.innerHTML = DOWNLOAD_SVG;
-    btn.type = "button";
-
-    var fileName = (overflowBtn.title || "").replace("More options for ", "");
-    btn.title = fileName ? "Download " + fileName : "Download";
-    btn.setAttribute("aria-label", btn.title);
-
-    btn.addEventListener("click", function (e) {
-      e.preventDefault();
-      e.stopPropagation();
-      triggerDownload(overflowBtn);
-    });
-
-    var container = overflowBtn.parentElement;
-    if (mode === "replace") {
-      overflowBtn.style.display = "none";
-      container.insertBefore(btn, overflowBtn);
-    } else {
-      container.insertBefore(btn, overflowBtn);
-    }
-  }
-
+  // === Download Trigger ===
+  // Opens the overflow menu hidden, clicks the download item, menu auto-closes.
+  // If no download item exists, falls back to showing the menu normally.
   function triggerDownload(overflowBtn) {
-    var wasHidden = overflowBtn.style.display === "none";
-    if (wasHidden) overflowBtn.style.display = "";
-
+    overflowBtn.style.display = "";
     var existing = snapshotPopovers();
     overflowBtn.click();
 
     waitForMenu(existing).then(function (menu) {
       if (!menu) {
-        if (wasHidden) overflowBtn.style.display = "none";
+        overflowBtn.style.display = "none";
         return;
       }
 
@@ -151,83 +113,46 @@
       );
       if (dlItem) {
         dlItem.click();
+        overflowBtn.style.display = "none";
       } else {
-        closeMenu();
-      }
-
-      if (wasHidden) overflowBtn.style.display = "none";
-    });
-  }
-
-  // === Inspection ===
-  function inspectButton(button) {
-    var existing = snapshotPopovers();
-
-    var overlay = document.createElement("div");
-    overlay.style.cssText =
-      "position:fixed;inset:0;z-index:9999;background:transparent;";
-    document.body.appendChild(overlay);
-
-    button.click();
-
-    return waitForMenu(existing).then(function (menu) {
-      overlay.remove();
-
-      if (!menu) return;
-
-      var visible = getVisibleItems(menu);
-      var dlItem = null;
-      var otherCount = 0;
-
-      for (var i = 0; i < visible.length; i++) {
-        var aid = visible[i].getAttribute("data-analytics-id") || "";
-        if (aid === DOWNLOAD_ANALYTICS_ID) {
-          dlItem = visible[i];
-        } else {
-          otherCount++;
-        }
-      }
-
-      closeMenu();
-
-      if (!dlItem) return;
-
-      if (otherCount === 0) {
-        createDownloadButton(button, "replace");
-      } else {
-        createDownloadButton(button, "alongside");
-      }
-    });
-  }
-
-  function processQueue() {
-    if (inspecting || queue.length === 0) return;
-    inspecting = true;
-
-    var button = queue.shift();
-
-    inspectButton(button).then(function () {
-      inspecting = false;
-      if (queue.length > 0) {
-        setTimeout(processQueue, 200);
+        // No download option — show menu normally as fallback
+        var popover = menu.closest('[role="presentation"]');
+        if (popover) popover.style.visibility = "";
+        overflowBtn.style.display = "none";
       }
     });
   }
 
   // === Scanning ===
+  // Replace each ... button with a download button immediately (no inspection).
   function scan() {
     var buttons = document.querySelectorAll(OVERFLOW_BTN_SELECTOR);
-    var added = false;
-
     for (var i = 0; i < buttons.length; i++) {
-      if (!processed.has(buttons[i])) {
-        processed.add(buttons[i]);
-        queue.push(buttons[i]);
-        added = true;
-      }
-    }
+      var overflowBtn = buttons[i];
+      if (processed.has(overflowBtn)) continue;
+      processed.add(overflowBtn);
 
-    if (added) processQueue();
+      overflowBtn.style.display = "none";
+
+      var dlBtn = document.createElement("button");
+      dlBtn.className = "ntulearn-dl-btn";
+      dlBtn.innerHTML = DOWNLOAD_SVG;
+      dlBtn.type = "button";
+
+      var fileName = (overflowBtn.title || "").replace("More options for ", "");
+      dlBtn.title = fileName ? "Download " + fileName : "Download";
+      dlBtn.setAttribute("aria-label", dlBtn.title);
+
+      (function (btn) {
+        dlBtn.addEventListener("click", function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          triggerDownload(btn);
+        });
+      })(overflowBtn);
+
+      overflowBtn.parentElement.insertBefore(dlBtn, overflowBtn);
+    }
   }
 
   function scheduleScan() {
@@ -250,7 +175,6 @@
       observer = null;
     }
     clearTimeout(debounceTimer);
-    queue = [];
   }
 
   // === SPA Navigation ===
