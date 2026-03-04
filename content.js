@@ -3,7 +3,7 @@
 
   // URL pattern helpers
   const DOCUMENT_RE =
-    /\/ultra\/courses\/[^/]+\/outline\/edit\/document\/[^/]+/;
+    /\/ultra\/courses\/[^/]+\/outline\/.+/;
   const OUTLINE_RE = /\/ultra\/courses\/[^/]+\/outline$/;
 
   function isDocumentView(url) {

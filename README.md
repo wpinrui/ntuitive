@@ -17,7 +17,7 @@ closing accumulates junk history entries.
 |------|---------|
 | Course list | `/ultra/course` |
 | Course outline | `/ultra/courses/{courseId}/outline` |
-| Document view | `/ultra/courses/{courseId}/outline/edit/document/{docId}?...` |
+| Document view | `/ultra/courses/{courseId}/outline/file/{fileId}` (and similar sub-paths) |
 
 ---
 
