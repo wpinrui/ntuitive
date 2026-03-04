@@ -4,12 +4,12 @@
   if (!window.__ntulearn.isEnabled("surfaceDownload", false)) return;
 
   // === Constants ===
-  var OVERFLOW_BTN_SELECTOR =
+  const OVERFLOW_BTN_SELECTOR =
     'button[id^="content-item-overflow-menu-button-"]';
-  var OUTLINE_RE = /\/ultra\/courses\/([^/]+)\/outline/;
-  var SCAN_DELAY = 300;
+  const OUTLINE_RE = /\/ultra\/courses\/([^/]+)\/outline/;
+  const SCAN_DELAY = 300;
 
-  var DOWNLOAD_SVG =
+  const DOWNLOAD_SVG =
     '<svg viewBox="0 0 16 16" width="16" height="16" focusable="false" ' +
     'aria-hidden="true" role="presentation">' +
     '<g fill="currentColor" stroke="transparent">' +
@@ -24,14 +24,14 @@
     '</g></svg>';
 
   // === State ===
-  var processed = new WeakSet();
-  var observer = null;
-  var debounceTimer = null;
+  const processed = new WeakSet();
+  let observer = null;
+  let debounceTimer = null;
 
   // === Styles ===
   function injectStyles() {
     if (document.getElementById("ntulearn-ext-dl-style")) return;
-    var style = document.createElement("style");
+    const style = document.createElement("style");
     style.id = "ntulearn-ext-dl-style";
     style.textContent =
       ".ntulearn-dl-btn{display:inline-flex;align-items:center;" +
@@ -45,18 +45,23 @@
 
   // === Helpers ===
   function getCourseId() {
-    var match = location.pathname.match(OUTLINE_RE);
+    const match = location.pathname.match(OUTLINE_RE);
     return match ? match[1] : null;
   }
 
   function getContentId(button) {
-    var match = (button.id || "").match(/content-item-overflow-menu-button-(.+)$/);
+    const match = (button.id || "").match(/content-item-overflow-menu-button-(.+)$/);
     return match ? match[1] : null;
   }
 
+  function restoreOverflowButton(dlBtn, overflowBtn) {
+    overflowBtn.style.display = "";
+    dlBtn.remove();
+  }
+
   // === Download ===
-  function triggerDownload(courseId, contentId, overflowBtn) {
-    var apiBase = location.origin +
+  function triggerDownload(courseId, contentId, dlBtn, overflowBtn) {
+    const apiBase = location.origin +
       "/learn/api/public/v1/courses/" + courseId +
       "/contents/" + contentId + "/attachments";
 
@@ -67,19 +72,19 @@
       })
       .then(function (data) {
         if (!data.results || data.results.length === 0) {
-          overflowBtn.style.display = "";
+          restoreOverflowButton(dlBtn, overflowBtn);
           return;
         }
-        var att = data.results[0];
-        var dlUrl = apiBase + "/" + att.id + "/download";
+        const att = data.results[0];
+        const dlUrl = apiBase + "/" + att.id + "/download";
         return fetch(dlUrl, { credentials: "same-origin", redirect: "follow" })
           .then(function (res) {
             if (!res.ok) throw new Error("Download returned " + res.status);
             return res.blob();
           })
           .then(function (blob) {
-            var url = URL.createObjectURL(blob);
-            var a = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
             a.href = url;
             a.download = att.fileName || "download";
             document.body.appendChild(a);
@@ -90,42 +95,42 @@
       })
       .catch(function (err) {
         console.error("[NTULearn Nav Fix] Download failed:", err);
-        overflowBtn.style.display = "";
+        restoreOverflowButton(dlBtn, overflowBtn);
       });
   }
 
   // === Scanning ===
   function scan() {
-    var courseId = getCourseId();
+    const courseId = getCourseId();
     if (!courseId) return;
 
-    var buttons = document.querySelectorAll(OVERFLOW_BTN_SELECTOR);
-    for (var i = 0; i < buttons.length; i++) {
-      var overflowBtn = buttons[i];
+    const buttons = document.querySelectorAll(OVERFLOW_BTN_SELECTOR);
+    for (let i = 0; i < buttons.length; i++) {
+      const overflowBtn = buttons[i];
       if (processed.has(overflowBtn)) continue;
       processed.add(overflowBtn);
 
-      var contentId = getContentId(overflowBtn);
+      const contentId = getContentId(overflowBtn);
       if (!contentId) continue;
 
       overflowBtn.style.display = "none";
 
-      var dlBtn = document.createElement("button");
+      const dlBtn = document.createElement("button");
       dlBtn.className = "ntulearn-dl-btn";
       dlBtn.innerHTML = DOWNLOAD_SVG;
       dlBtn.type = "button";
 
-      var fileName = (overflowBtn.title || "").replace("More options for ", "");
+      const fileName = (overflowBtn.title || "").replace("More options for ", "");
       dlBtn.title = fileName ? "Download " + fileName : "Download";
       dlBtn.setAttribute("aria-label", dlBtn.title);
 
-      (function (cId, oBtn) {
-        dlBtn.addEventListener("click", function (e) {
+      (function (crseId, cntId, dBtn, oBtn) {
+        dBtn.addEventListener("click", function (e) {
           e.preventDefault();
           e.stopPropagation();
-          triggerDownload(courseId, cId, oBtn);
+          triggerDownload(crseId, cntId, dBtn, oBtn);
         });
-      })(contentId, overflowBtn);
+      })(courseId, contentId, dlBtn, overflowBtn);
 
       overflowBtn.parentElement.insertBefore(dlBtn, overflowBtn);
     }
@@ -166,16 +171,16 @@
     }
   }
 
-  var _pushState = history.pushState;
+  const _pushState = history.pushState;
   history.pushState = function () {
-    var result = _pushState.apply(this, arguments);
+    const result = _pushState.apply(this, arguments);
     onNavigate();
     return result;
   };
 
-  var _replaceState = history.replaceState;
+  const _replaceState = history.replaceState;
   history.replaceState = function () {
-    var result = _replaceState.apply(this, arguments);
+    const result = _replaceState.apply(this, arguments);
     onNavigate();
     return result;
   };
