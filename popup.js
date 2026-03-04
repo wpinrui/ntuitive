@@ -47,8 +47,8 @@
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
       if (!tabs[0] || !tabs[0].id) return;
       chrome.tabs.sendMessage(tabs[0].id, { action: "resetCourseCache" }, function () {
-        void chrome.runtime.lastError;
-        resetCacheBtn.textContent = "Cache cleared!";
+        var failed = !!chrome.runtime.lastError;
+        resetCacheBtn.textContent = failed ? "Open NTULearn first" : "Cache cleared!";
         setTimeout(function () {
           resetCacheBtn.textContent = "Reset course cache";
         }, 2000);

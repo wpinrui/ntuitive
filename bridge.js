@@ -1,13 +1,15 @@
 (function () {
   "use strict";
 
-  var STORAGE_KEY = "ntulearn-ext-settings";
+  var SETTINGS_KEY = "ntulearn-ext-settings";
+  var COURSES_KEY = "ntulearn-ext-courses";
+  var HIDDEN_KEY = "ntulearn-ext-hidden";
 
   // Sync chrome.storage.local -> localStorage on page load
   chrome.storage.local.get("settings", function (result) {
     var settings = Object.assign({}, DEFAULT_SETTINGS, result.settings || {});
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
     } catch (_) {}
   });
 
@@ -16,7 +18,7 @@
     if (area !== "local" || !changes.settings) return;
     var settings = Object.assign({}, DEFAULT_SETTINGS, changes.settings.newValue || {});
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
     } catch (_) {}
   });
 
@@ -24,8 +26,8 @@
   chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
     if (msg.action === "resetCourseCache") {
       try {
-        localStorage.removeItem("ntulearn-ext-courses");
-        localStorage.removeItem("ntulearn-ext-hidden");
+        localStorage.removeItem(COURSES_KEY);
+        localStorage.removeItem(HIDDEN_KEY);
       } catch (_) {}
       sendResponse({ ok: true });
     }
