@@ -130,11 +130,16 @@
   }
 
   // === Data Layer ===
-  function saveCourses(courses) {
+  function saveCourses(newCourses) {
     try {
+      // Merge with existing cached courses (append, don't overwrite)
+      const existing = loadCachedCourses() || [];
+      const byHref = new Map();
+      for (const c of existing) byHref.set(c.href, c);
+      for (const c of newCourses) byHref.set(c.href, c);
       localStorage.setItem(
         STORAGE_KEY,
-        JSON.stringify({ timestamp: Date.now(), courses: courses })
+        JSON.stringify({ timestamp: Date.now(), courses: Array.from(byHref.values()) })
       );
     } catch (_) {}
   }
@@ -152,7 +157,7 @@
 
   function loadHidden() {
     try {
-      var raw = localStorage.getItem(HIDDEN_KEY);
+      const raw = localStorage.getItem(HIDDEN_KEY);
       return raw ? new Set(JSON.parse(raw)) : new Set();
     } catch (_) {
       return new Set();
@@ -171,25 +176,25 @@
     const seen = new Set();
 
     cards.forEach(function (card) {
-      var courseId = card.getAttribute("data-course-id");
+      const courseId = card.getAttribute("data-course-id");
       if (!courseId || seen.has(courseId)) return;
       seen.add(courseId);
 
-      var nameEl = card.querySelector("h4.js-course-title-element");
-      var idEl = card.querySelector(".course-id span");
-      var statusEl = card.querySelector(".course-status span");
+      const nameEl = card.querySelector("h4.js-course-title-element");
+      const idEl = card.querySelector(".course-id span");
+      const statusEl = card.querySelector(".course-status span");
 
       // Find the term heading: walk backwards from this card's parent
       // to find the preceding h3 term header
-      var term = "";
-      var prev = card.closest("[ng-repeat-end]");
+      let term = "";
+      const prev = card.closest("[ng-repeat-end]");
       if (prev) {
-        var termHeader = prev.previousElementSibling;
+        let termHeader = prev.previousElementSibling;
         while (termHeader && !termHeader.querySelector("h3")) {
           termHeader = termHeader.previousElementSibling;
         }
         if (termHeader) {
-          var h3 = termHeader.querySelector("h3");
+          const h3 = termHeader.querySelector("h3");
           if (h3) term = h3.textContent.trim();
         }
       }
@@ -214,7 +219,7 @@
         if (/^\s+$/.test(part) || part === "-") return part;
         // Keep codes with digits as-is (e.g. TG07, I, II)
         if (/\d/.test(part)) return part;
-        var lower = part.toLowerCase();
+        const lower = part.toLowerCase();
         if (i > 0 && SMALL_WORDS.has(lower)) return lower;
         return lower.charAt(0).toUpperCase() + lower.slice(1);
       })
@@ -223,10 +228,10 @@
 
   function formatCourseName(raw) {
     // Parse "CODE(DATE):NAME" or "CODE(DATE):NAME - GROUP"
-    var match = raw.match(/^([^(]+)\([^)]*\):\s*(.+)$/);
+    const match = raw.match(/^([^(]+)\([^)]*\):\s*(.+)$/);
     if (!match) return { code: "", title: raw };
-    var code = match[1].trim().replace(/_/g, "/");
-    var title = match[2].trim();
+    const code = match[1].trim().replace(/_/g, "/");
+    let title = match[2].trim();
     // Convert ALL CAPS to title case, leave mixed case as-is
     if (title === title.toUpperCase()) {
       title = toTitleCase(title);
@@ -244,7 +249,7 @@
   }
 
   function startsWithAny(words, q) {
-    for (var i = 0; i < words.length; i++) {
+    for (let i = 0; i < words.length; i++) {
       if (words[i].startsWith(q)) return true;
     }
     return false;
@@ -253,16 +258,16 @@
   function matchesCourse(course, q) {
     if (!q) return true;
     // Word-start matching (avoids "pp" matching "approaches")
-    var nameWords = getWords(course.courseName.toLowerCase());
-    var idWords = getWords(course.courseId.toLowerCase());
+    const nameWords = getWords(course.courseName.toLowerCase());
+    const idWords = getWords(course.courseId.toLowerCase());
     if (startsWithAny(nameWords, q)) return true;
     if (startsWithAny(idWords, q)) return true;
     if (q.length >= 2) {
-      var words = getWords(course.courseName);
+      const words = getWords(course.courseName);
       // Full acronym (e.g. "taml" matches Teaching And Managing Learners)
       if (acronym(words).includes(q)) return true;
       // Filtered acronym (e.g. "tml" skipping stop words)
-      var filtered = words.filter(function (w) { return !SMALL_WORDS.has(w.toLowerCase()); });
+      const filtered = words.filter(function (w) { return !SMALL_WORDS.has(w.toLowerCase()); });
       if (acronym(filtered).includes(q)) return true;
     }
     return false;
@@ -271,31 +276,31 @@
   // === UI Layer ===
   function buildDropdownUI(container, courses) {
     container.innerHTML = "";
-    var hidden = loadHidden();
+    const hidden = loadHidden();
 
-    var search = document.createElement("input");
+    const search = document.createElement("input");
     search.type = "text";
     search.placeholder = "Search courses\u2026";
     search.className = P + "-search";
 
-    var list = document.createElement("ul");
+    const list = document.createElement("ul");
     list.className = P + "-list";
     list.setAttribute("role", "menu");
 
     function render(query) {
       list.innerHTML = "";
-      var q = query.toLowerCase();
-      var matched = courses.filter(function (c) {
+      const q = query.toLowerCase();
+      const matched = courses.filter(function (c) {
         return matchesCourse(c, q);
       });
 
       // Sort: visible courses in original order, then hidden at bottom
-      var visibleCourses = matched.filter(function (c) { return !hidden.has(c.href); });
-      var hiddenCourses = matched.filter(function (c) { return hidden.has(c.href); });
-      var sorted = visibleCourses.concat(hiddenCourses);
+      const visibleCourses = matched.filter(function (c) { return !hidden.has(c.href); });
+      const hiddenCourses = matched.filter(function (c) { return hidden.has(c.href); });
+      const sorted = visibleCourses.concat(hiddenCourses);
 
       if (sorted.length === 0) {
-        var msg = document.createElement("li");
+        const msg = document.createElement("li");
         msg.className = P + "-no-results";
         msg.textContent = "No courses found";
         list.appendChild(msg);
@@ -303,34 +308,34 @@
       }
 
       sorted.forEach(function (course) {
-        var isHidden = hidden.has(course.href);
-        var li = document.createElement("li");
+        const isHidden = hidden.has(course.href);
+        const li = document.createElement("li");
         li.className = P + "-item" + (isHidden ? " " + P + "-item-hidden" : "");
 
-        var row = document.createElement("div");
+        const row = document.createElement("div");
         row.className = P + "-item-row";
 
-        var a = document.createElement("a");
+        const a = document.createElement("a");
         a.href = course.href;
         a.setAttribute("role", "menuitem");
 
-        var fmt = formatCourseName(course.courseName);
+        const fmt = formatCourseName(course.courseName);
 
-        var name = document.createElement("div");
+        const name = document.createElement("div");
         name.className = P + "-course-name";
         name.textContent = fmt.code
           ? fmt.code + ": " + fmt.title
           : fmt.title;
 
-        var meta = document.createElement("div");
+        const meta = document.createElement("div");
         meta.className = P + "-course-meta";
         if (course.semester) {
-          var sem = document.createElement("span");
+          const sem = document.createElement("span");
           sem.textContent = course.semester;
           meta.appendChild(sem);
         }
         if (course.status) {
-          var s = document.createElement("span");
+          const s = document.createElement("span");
           s.textContent = course.status;
           meta.appendChild(s);
         }
@@ -338,7 +343,7 @@
         a.appendChild(name);
         a.appendChild(meta);
 
-        var btn = document.createElement("button");
+        const btn = document.createElement("button");
         btn.className = P + "-vis-btn";
         btn.innerHTML = isHidden ? ICON_EYE_OFF : ICON_EYE;
         btn.title = isHidden ? "Show in list" : "Hide from list";
@@ -364,7 +369,7 @@
       render(search.value);
     });
 
-    var wrapper = document.createElement("div");
+    const wrapper = document.createElement("div");
     wrapper.className = P + "-wrapper";
     wrapper.appendChild(search);
     wrapper.appendChild(list);
@@ -377,37 +382,37 @@
   }
 
   // === Dropdown Override ===
-  var handledPopovers = new WeakSet();
+  const handledPopovers = new WeakSet();
 
   function handlePopover(popover) {
     if (handledPopovers.has(popover)) return;
     handledPopovers.add(popover);
 
-    var courses = loadCachedCourses();
+    const courses = loadCachedCourses();
     if (!courses || courses.length === 0) return;
 
     // Find the content area below the header.
     // The header is the first child div (contains h1, "View all" link, close button).
     // The content area is the second child div (contains "Recent courses" and the list).
-    var contentArea = popover.querySelector('ul[role="menu"]');
+    let contentArea = popover.querySelector('ul[role="menu"]');
     if (contentArea) contentArea = contentArea.parentElement;
     if (!contentArea) return;
     buildDropdownUI(contentArea, courses);
   }
 
   function scanForPopover() {
-    var popover = document.querySelector(POPOVER_SELECTOR);
+    const popover = document.querySelector(POPOVER_SELECTOR);
     if (popover) handlePopover(popover);
   }
 
   // === Course Scraping on /ultra/course ===
-  var scrapeTimeout = null;
-  var scrapingObserver = null;
+  let scrapeTimeout = null;
+  let scrapingObserver = null;
 
   function scheduleScrape() {
     clearTimeout(scrapeTimeout);
     scrapeTimeout = setTimeout(function () {
-      var courses = scrapeCourses();
+      const courses = scrapeCourses();
       if (courses.length > 0) {
         saveCourses(courses);
       }
@@ -434,7 +439,7 @@
 
   // === SPA Navigation Detection ===
   function isCoursesPage() {
-    var p = location.pathname;
+    const p = location.pathname;
     return p === COURSES_PAGE_PATH || p === COURSES_PAGE_PATH + "/";
   }
 
@@ -446,16 +451,16 @@
     }
   }
 
-  var _pushState = history.pushState;
+  const _pushState = history.pushState;
   history.pushState = function () {
-    var result = _pushState.apply(this, arguments);
+    const result = _pushState.apply(this, arguments);
     onNavigate();
     return result;
   };
 
-  var _replaceState = history.replaceState;
+  const _replaceState = history.replaceState;
   history.replaceState = function () {
-    var result = _replaceState.apply(this, arguments);
+    const result = _replaceState.apply(this, arguments);
     onNavigate();
     return result;
   };
@@ -466,7 +471,7 @@
   function start() {
     injectStyles();
 
-    var observer = new MutationObserver(scanForPopover);
+    const observer = new MutationObserver(scanForPopover);
     observer.observe(document.body, { childList: true, subtree: true });
     scanForPopover();
 
