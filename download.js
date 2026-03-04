@@ -54,36 +54,13 @@
     return match ? match[1] : null;
   }
 
-  function getXsrfToken() {
-    var match = document.cookie.match(/xsrf:([^,;]+)/);
-    return match ? match[1] : "";
-  }
-
-  // === Download via API ===
+  // === Download ===
   function triggerDownload(courseId, contentId) {
-    var apiBase =
+    window.open(
       "/learn/api/public/v1/courses/" + courseId +
-      "/contents/" + contentId + "/attachments";
-
-    fetch(apiBase, {
-      credentials: "same-origin",
-      headers: { "X-Blackboard-XSRF": getXsrfToken() }
-    })
-      .then(function (res) { return res.json(); })
-      .then(function (data) {
-        if (data.results && data.results.length > 0) {
-          var url = apiBase + "/" + data.results[0].id + "/download";
-          var a = document.createElement("a");
-          a.href = url;
-          a.style.display = "none";
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-        }
-      })
-      .catch(function (err) {
-        console.error("[NTULearn Nav Fix] Download failed:", err);
-      });
+      "/contents/" + contentId + "/attachments/download",
+      "_blank"
+    );
   }
 
   // === Scanning ===
