@@ -26,19 +26,26 @@
     '[style*="background-image"]'
   ];
 
+  // Elements inside re-inverted containers whose text reverts to dark-on-dark.
+  const TEXT_FIX_SELECTORS = [
+    "#main-heading",
+    ".catalog-anchor-tag > span > bb-translate"
+  ];
+
   // === CSS Generation ===
   function buildCSS() {
     const darkRoot = "html." + DARK_CLASS;
     const reinvert = "filter:invert(1) hue-rotate(180deg) !important";
 
-    function filterBlock(selectors) {
+    function ruleBlock(selectors, rule) {
       return selectors.map(function (s) { return darkRoot + " " + s; }).join(",")
-        + "{" + reinvert + "}\n";
+        + "{" + rule + "}\n";
     }
 
     let css = darkRoot + "{" + reinvert + ";background-color:#111 !important}\n";
-    css += filterBlock(MEDIA_SELECTORS);
-    if (DARK_CHROME_SELECTORS.length) css += filterBlock(DARK_CHROME_SELECTORS);
+    css += ruleBlock(MEDIA_SELECTORS, reinvert);
+    if (DARK_CHROME_SELECTORS.length) css += ruleBlock(DARK_CHROME_SELECTORS, reinvert);
+    if (TEXT_FIX_SELECTORS.length) css += ruleBlock(TEXT_FIX_SELECTORS, "color:#fff !important");
 
     return css;
   }
