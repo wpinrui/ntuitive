@@ -18,13 +18,12 @@
   const originalPushState = history.pushState.bind(history);
 
   history.pushState = function (state, title, url) {
-    if (
-      url &&
-      isDocumentView(location.href) &&
-      isOutlineView(new URL(url, location.origin).pathname)
-    ) {
-      history.back();
-      return;
+    if (url) {
+      const targetPath = new URL(url, location.origin).pathname;
+      if (isDocumentView(location.href) && isOutlineView(targetPath)) {
+        history.back();
+        return;
+      }
     }
     return originalPushState(state, title, url);
   };
