@@ -4,10 +4,13 @@
   // === Constants ===
   const EXPAND_DELAY = 0; // ms before clicking the next folder (tune as needed)
   const FOLDER_BTN_SELECTOR =
-    'button[data-analytics-id="content.item.folder.toggleFolder.button"][aria-expanded="false"]';
+    'button[data-analytics-id="content.item.folder.toggleFolder.button"]';
   const OUTLINE_RE = /\/ultra\/courses\/[^/]+\/outline$/;
 
   // === State ===
+  // Track folders we've already expanded (by aria-controls ID) so we don't
+  // fight the user when they manually collapse one.
+  let expanded = new Set();
   let observer = null;
   let debounceTimer = null;
 
@@ -16,8 +19,21 @@
   // re-render that replaces sibling buttons, so we let the MutationObserver
   // cascade: click one → DOM updates → observer fires → click next.
   function expandOneFolder() {
-    const btn = document.querySelector(FOLDER_BTN_SELECTOR);
-    if (btn) btn.click();
+    // Seed the set with any folders already open
+    document.querySelectorAll(FOLDER_BTN_SELECTOR).forEach(function (btn) {
+      if (btn.getAttribute("aria-expanded") === "true") {
+        expanded.add(btn.getAttribute("aria-controls"));
+      }
+    });
+    // Find first collapsed folder we haven't touched yet
+    const btn = document.querySelector(
+      FOLDER_BTN_SELECTOR + '[aria-expanded="false"]'
+    );
+    if (!btn) return;
+    const id = btn.getAttribute("aria-controls");
+    if (expanded.has(id)) return;
+    expanded.add(id);
+    btn.click();
   }
 
   function scheduleExpand() {
@@ -28,6 +44,7 @@
   // === Observer lifecycle ===
   function startObserver() {
     if (observer || !document.body) return;
+    expanded = new Set();
     observer = new MutationObserver(scheduleExpand);
     observer.observe(document.body, { childList: true, subtree: true });
     expandOneFolder();
