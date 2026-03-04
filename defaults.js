@@ -4,5 +4,6 @@ var DEFAULT_SETTINGS = {
   courseLinks: true,
   autoExpandFolders: true,
   expandDepth: 0,
-  pdfViewer: true
+  pdfViewer: true,
+  darkTheme: false
 };
