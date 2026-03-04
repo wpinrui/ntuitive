@@ -14,7 +14,7 @@
     ".base-header",
     "course-banner",
     ".black-panel-header",
-    '[data-test-id="course-switcher-popover"]'
+    ':has(> [data-test-id="course-switcher-popover"])'
   ];
 
   // Media elements that need re-inversion to preserve original appearance.
