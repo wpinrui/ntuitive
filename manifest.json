@@ -6,7 +6,7 @@
   "content_scripts": [
     {
       "matches": ["https://ntulearn.ntu.edu.sg/*"],
-      "js": ["content.js", "courses.js", "outline.js"],
+      "js": ["content.js", "courses.js", "outline.js", "viewer.js"],
       "run_at": "document_start",
       "world": "MAIN"
     }
