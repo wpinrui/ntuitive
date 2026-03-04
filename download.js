@@ -55,19 +55,28 @@
   }
 
   // === Download ===
-  function triggerDownload(courseId, contentId) {
+  function triggerDownload(courseId, contentId, overflowBtn) {
     var apiBase = location.origin +
       "/learn/api/public/v1/courses/" + courseId +
       "/contents/" + contentId + "/attachments";
 
     fetch(apiBase, { credentials: "same-origin" })
-      .then(function (res) { return res.json(); })
+      .then(function (res) {
+        if (!res.ok) throw new Error("Attachments API returned " + res.status);
+        return res.json();
+      })
       .then(function (data) {
-        if (!data.results || data.results.length === 0) return;
+        if (!data.results || data.results.length === 0) {
+          overflowBtn.style.display = "";
+          return;
+        }
         var att = data.results[0];
         var dlUrl = apiBase + "/" + att.id + "/download";
         return fetch(dlUrl, { credentials: "same-origin", redirect: "follow" })
-          .then(function (res) { return res.blob(); })
+          .then(function (res) {
+            if (!res.ok) throw new Error("Download returned " + res.status);
+            return res.blob();
+          })
           .then(function (blob) {
             var url = URL.createObjectURL(blob);
             var a = document.createElement("a");
@@ -81,6 +90,7 @@
       })
       .catch(function (err) {
         console.error("[NTULearn Nav Fix] Download failed:", err);
+        overflowBtn.style.display = "";
       });
   }
 
@@ -109,13 +119,13 @@
       dlBtn.title = fileName ? "Download " + fileName : "Download";
       dlBtn.setAttribute("aria-label", dlBtn.title);
 
-      (function (cId) {
+      (function (cId, oBtn) {
         dlBtn.addEventListener("click", function (e) {
           e.preventDefault();
           e.stopPropagation();
-          triggerDownload(courseId, cId);
+          triggerDownload(courseId, cId, oBtn);
         });
-      })(contentId);
+      })(contentId, overflowBtn);
 
       overflowBtn.parentElement.insertBefore(dlBtn, overflowBtn);
     }
