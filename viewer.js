@@ -4,6 +4,7 @@
   // === Constants ===
   const DOCUMENT_RE = /\/ultra\/courses\/[^/]+\/outline\/.+/;
   const STYLE_ID = "ntulearn-ext-viewer-style";
+  const BOTTOM_MARGIN = 8; // px gap below the viewer
 
   // === URL Detection ===
   function isFileView() {
@@ -58,7 +59,7 @@
     const top = Math.round(rect.top);
     if (top > 0 && top !== lastTop) {
       lastTop = top;
-      preview.style.height = "calc(100vh - " + top + "px - 8px)";
+      preview.style.height = "calc(100vh - " + top + "px - " + BOTTOM_MARGIN + "px)";
     }
   }
 
@@ -85,6 +86,8 @@
       observer = null;
     }
     lastTop = -1;
+    var preview = document.querySelector("bb-file-preview");
+    if (preview) preview.style.height = "";
     removeStyles();
   }
 
