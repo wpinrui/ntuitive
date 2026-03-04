@@ -1,0 +1,17 @@
+# Agent files (not tracked in git)
+.claude/
+agents/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+*.swp
+*.swo
+
+# Package files (if build tooling added later)
+node_modules/
+dist/
+*.zip
