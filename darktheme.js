@@ -39,7 +39,7 @@
     let css = darkRoot + "{" + reinvert + ";background-color:#111 !important}\n";
     css += filterBlock(MEDIA_SELECTORS);
     if (DARK_CHROME_SELECTORS.length) css += filterBlock(DARK_CHROME_SELECTORS);
-    css += darkRoot + " .black-panel-header .page-title{color:#fff !important}\n";
+    css += darkRoot + " #main-heading{color:#fff !important}\n";
 
     return css;
   }
