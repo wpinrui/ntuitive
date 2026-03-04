@@ -64,7 +64,12 @@
       .then(function (res) { return res.json(); })
       .then(function (data) {
         if (data.results && data.results.length > 0) {
-          window.open(apiBase + "/" + data.results[0].id + "/download", "_blank");
+          var a = document.createElement("a");
+          a.href = apiBase + "/" + data.results[0].id + "/download";
+          a.style.display = "none";
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
         }
       })
       .catch(function (err) {
