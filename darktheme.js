@@ -12,6 +12,7 @@
   var DARK_CHROME_SELECTORS = [
     ".bb-course-navigation",
     ".base-header",
+    "course-banner",
     '[data-test-id="course-switcher-popover"]'
   ];
 
