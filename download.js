@@ -94,7 +94,7 @@
           });
       })
       .catch(function (err) {
-        console.error("[NTULearn Nav Fix] Download failed:", err);
+        console.error("[NTUitive] Download failed:", err);
         restoreOverflowButton(dlBtn, overflowBtn);
       });
   }
