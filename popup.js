@@ -1,15 +1,6 @@
 (function () {
   "use strict";
 
-  var DEFAULT_SETTINGS = {
-    backButtonFix: false,
-    courseSwitcher: true,
-    courseLinks: true,
-    autoExpandFolders: true,
-    expandDepth: 0,
-    pdfViewer: true
-  };
-
   var TOGGLE_IDS = [
     "backButtonFix", "courseSwitcher", "courseLinks",
     "autoExpandFolders", "pdfViewer"

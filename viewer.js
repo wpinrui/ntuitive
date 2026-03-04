@@ -1,17 +1,7 @@
 (function () {
   "use strict";
 
-  // === Settings check ===
-  var SETTINGS_KEY = "ntulearn-ext-settings";
-  function isEnabled(key, defaultValue) {
-    try {
-      var raw = localStorage.getItem(SETTINGS_KEY);
-      if (!raw) return defaultValue;
-      var settings = JSON.parse(raw);
-      return settings.hasOwnProperty(key) ? !!settings[key] : defaultValue;
-    } catch (_) { return defaultValue; }
-  }
-  if (!isEnabled("pdfViewer", true)) return;
+  if (!window.__ntulearn.isEnabled("pdfViewer", true)) return;
 
   // === Constants ===
   const DOCUMENT_RE = /\/ultra\/courses\/[^/]+\/outline\/.+/;

@@ -3,15 +3,6 @@
 
   var STORAGE_KEY = "ntulearn-ext-settings";
 
-  var DEFAULT_SETTINGS = {
-    backButtonFix: false,
-    courseSwitcher: true,
-    courseLinks: true,
-    autoExpandFolders: true,
-    expandDepth: 0,
-    pdfViewer: true
-  };
-
   // Sync chrome.storage.local -> localStorage on page load
   chrome.storage.local.get("settings", function (result) {
     var settings = Object.assign({}, DEFAULT_SETTINGS, result.settings || {});

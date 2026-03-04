@@ -10,13 +10,13 @@
   "content_scripts": [
     {
       "matches": ["https://ntulearn.ntu.edu.sg/*"],
-      "js": ["bridge.js"],
+      "js": ["defaults.js", "bridge.js"],
       "run_at": "document_start",
       "world": "ISOLATED"
     },
     {
       "matches": ["https://ntulearn.ntu.edu.sg/*"],
-      "js": ["content.js", "courses.js", "courselinks.js", "outline.js", "viewer.js"],
+      "js": ["settings.js", "content.js", "courses.js", "courselinks.js", "outline.js", "viewer.js"],
       "run_at": "document_start",
       "world": "MAIN"
     }
