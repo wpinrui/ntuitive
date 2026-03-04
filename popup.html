@@ -77,6 +77,17 @@
       cursor: pointer;
     }
     .action-btn:hover { background: #fdf0ef; }
+    .badge-exp {
+      display: inline-block;
+      font-size: 9px;
+      font-weight: 600;
+      color: #b07d10;
+      background: #fef3cd;
+      border-radius: 3px;
+      padding: 1px 4px;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
     .footer {
       margin-top: 12px;
       padding-top: 8px;
@@ -85,14 +96,16 @@
       color: #999;
       text-align: center;
     }
+    .footer a { color: #4a90d9; text-decoration: none; }
+    .footer a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
-  <h1>NTULearn Nav Fix</h1>
+  <h1>NTUitive</h1>
 
   <div class="setting">
     <div>
-      <div class="setting-label">Back button fix</div>
+      <div class="setting-label">Back button fix <span class="badge-exp">(Experimental!)</span></div>
       <div class="setting-desc">Intercept close button to navigate back</div>
     </div>
     <label class="toggle">
@@ -160,7 +173,7 @@
 
   <div class="setting">
     <div>
-      <div class="setting-label">Dark theme</div>
+      <div class="setting-label">Dark theme <span class="badge-exp">(Experimental!)</span></div>
       <div class="setting-desc">Invert colors for a dark appearance</div>
     </div>
     <label class="toggle">
@@ -171,7 +184,7 @@
 
   <div class="setting">
     <div>
-      <div class="setting-label">Surface download button</div>
+      <div class="setting-label">Surface download button <span class="badge-exp">(Experimental!)</span></div>
       <div class="setting-desc">Show download button without opening menu</div>
     </div>
     <label class="toggle">
@@ -180,7 +193,10 @@
     </label>
   </div>
 
-  <div class="footer">Changes take effect after page reload.</div>
+  <div class="footer">
+    Changes take effect after page reload.<br>
+    Made by <a href="https://github.com/wpinrui" target="_blank">Ivan</a>
+  </div>
 
   <script src="defaults.js"></script>
   <script src="popup.js"></script>

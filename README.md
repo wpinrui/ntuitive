@@ -1,113 +1,40 @@
-# NTULearn Nav Fix — Design Doc
+# NTUitive
 
-## Problems
+A browser extension that makes NTULearn (Blackboard Ultra) more intuitive.
 
-### 1. Broken back-button navigation
-NTULearn (Blackboard Ultra) is a SPA. Closing a document view pushes a
-duplicate `/outline` onto the history stack instead of popping back to it.
-This means the back button navigates to the document again, and repeated
-closing accumulates junk history entries.
+## Features
 
-**Expected behaviour**
-- Back on document → outline
-- Back on outline → course list (`/ultra/course`)
+| Feature | Default | Description |
+|---------|---------|-------------|
+| **Course switcher** | On | Replaces the "Recent courses" dropdown with a searchable list of all enrolled courses |
+| **Course links fix** | On | Makes course cards proper links so ctrl+click / right-click "Open in new tab" works |
+| **Auto-expand folders** | On | Automatically opens folders in the course outline (configurable depth) |
+| **PDF viewer fullscreen** | On | Expands document previews to fill the viewport |
+| **Back button fix** | Off | Intercepts the close button to navigate back instead of pushing duplicate history entries |
+| **Dark theme** | Off | Inverts colors for a dark appearance |
+| **Surface download button** | Off | Replaces the overflow menu with a visible download button |
 
-### 2. Useless course dropdown
-The "Courses" dropdown in the top nav only shows a handful of recent courses
-with large thumbnail images, wasting space. It does not include all enrolled
-courses and has no search functionality.
+Features marked *(Experimental!)* in the popup are off by default.
 
-**Expected behaviour**
-- Dropdown shows all enrolled courses (scraped from the "View all" page)
-- Searchable by course name or ID
-- Compact list layout (no thumbnails)
+## Install
 
----
+### Chrome
+1. Download or clone this repository
+2. Go to `chrome://extensions`
+3. Enable **Developer mode**
+4. Click **Load unpacked** and select the repo folder
 
-## URL Patterns
-| Page | Pattern |
-|------|---------|
-| Course list | `/ultra/course` |
-| Course outline | `/ultra/courses/{courseId}/outline` |
-| Document view | `/ultra/courses/{courseId}/outline/file/{fileId}` (and similar sub-paths) |
+### Firefox
+1. Go to `about:debugging#/runtime/this-firefox`
+2. Click **Load Temporary Add-on**
+3. Select `manifest.json` from the repo folder
 
----
+## Usage
 
-## Approach
+Click the extension icon to toggle features. Changes take effect after page reload.
 
-Content scripts injected on `ntulearn.ntu.edu.sg`.
+The course switcher requires visiting the course list page (`/ultra/course`) once to populate the cache.
 
-### Back button fix strategy
-NTULearn is a SPA, so navigation is JS-driven (`pushState`), not page loads.
-The close button on a document view triggers a JS navigation to `/outline`,
-pushing a duplicate entry.
+## License
 
-**Preferred fix: monkey-patch `history.pushState`**
-Intercept calls to `history.pushState` where:
-- Current URL matches the document pattern
-- Target URL matches the outline pattern
-Replace the push with `history.back()` instead.
-
-**Fallback: MutationObserver on close button**
-If pushState interception is insufficient (e.g. the SPA uses `replaceState`
-or a router abstraction), observe the DOM for the close button and attach
-a click handler that calls `history.back()` and prevents default navigation.
-
-Both strategies can run simultaneously.
-
-### Course dropdown strategy
-**Data collection:** When user visits the "View all" courses page
-(`/ultra/course`), scrape all course names, IDs, links, status, and semester.
-Cache in `localStorage` so data persists across SPA navigations and refreshes.
-
-**Dropdown override:** MutationObserver detects the course switcher popover
-(`[data-test-id="course-switcher-popover"]`). When it appears, replace its
-contents with a searchable list of all courses.
-
-**Graceful degradation:** If no cached data exists (user hasn't visited the
-courses page yet), leave the original dropdown untouched.
-
----
-
-## Implementation Notes
-
-- **MutationObserver** needed regardless — SPA re-renders mean the close
-  button may not exist on script load
-- **Selector risk**: close button CSS selector may change on NTULearn updates;
-  should be the primary maintenance surface
-- No background script required
-- No permissions beyond `activeTab` / host match for `ntulearn.ntu.edu.sg`
-
----
-
-## Manifest
-
-- **Version**: Manifest V3 (Chrome + Firefox compatible)
-- **Files**: `manifest.json`, `content.js`, `courses.js`
-- **Host permissions**: `https://ntulearn.ntu.edu.sg/*`
-
-### Browser targets
-| Browser | Distribution | Notes |
-|---------|-------------|-------|
-| Chrome | Chrome Web Store | $5 one-time dev fee |
-| Firefox | Mozilla AMO | Free, manual code review |
-
-Cross-browser delta expected to be minimal — MV3 is supported on both.
-Test on both before submission.
-
----
-
-## Risks
-| Risk | Likelihood | Mitigation |
-|------|-----------|-----------|
-| Close button selector changes | Medium | Keep selector isolated, easy to patch |
-| SPA router bypasses pushState patch | Low | MutationObserver fallback covers this |
-| NTULearn URL structure changes | Low | Pattern matching is loosely defined |
-| Course list page DOM changes | Medium | Selectors isolated, easy to update |
-| Course dropdown popover DOM changes | Medium | Detected via `data-test-id`, fairly stable |
-
----
-
-## Out of Scope
-- NTULearn UX fixes beyond navigation and course switching
-- Userscript distribution
+MIT

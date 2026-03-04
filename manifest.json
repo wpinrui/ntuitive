@@ -1,11 +1,21 @@
 {
   "manifest_version": 3,
-  "name": "NTULearn Nav Fix",
-  "version": "1.2.0",
-  "description": "Fixes navigation and enhances course switching in NTULearn (Blackboard Ultra).",
+  "name": "NTUitive",
+  "version": "2.0.0",
+  "description": "A smarter NTULearn experience — course switcher, folder expansion, download buttons, dark theme, and more.",
   "permissions": ["storage"],
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
   "action": {
-    "default_popup": "popup.html"
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icon16.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    }
   },
   "content_scripts": [
     {
