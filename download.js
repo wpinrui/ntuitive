@@ -124,13 +124,11 @@
       dlBtn.title = fileName ? "Download " + fileName : "Download";
       dlBtn.setAttribute("aria-label", dlBtn.title);
 
-      (function (crseId, cntId, dBtn, oBtn) {
-        dBtn.addEventListener("click", function (e) {
-          e.preventDefault();
-          e.stopPropagation();
-          triggerDownload(crseId, cntId, dBtn, oBtn);
-        });
-      })(courseId, contentId, dlBtn, overflowBtn);
+      dlBtn.addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        triggerDownload(courseId, contentId, dlBtn, overflowBtn);
+      });
 
       overflowBtn.parentElement.insertBefore(dlBtn, overflowBtn);
     }
