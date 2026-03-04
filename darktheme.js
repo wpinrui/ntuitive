@@ -41,6 +41,10 @@
         + "{" + reinvert + "}\n";
     }
 
+    // PDF viewer background: set directly instead of re-inverting to avoid
+    // triple-inversion on child canvas elements.
+    css += d + " .page-container{background-color:#222 !important}\n";
+
     return css;
   }
 
