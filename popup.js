@@ -3,7 +3,7 @@
 
   var TOGGLE_IDS = [
     "backButtonFix", "courseSwitcher", "courseLinks",
-    "autoExpandFolders", "pdfViewer", "darkTheme"
+    "autoExpandFolders", "pdfViewer", "darkTheme", "surfaceDownload"
   ];
 
   var expandDepthSelect = document.getElementById("expandDepth");

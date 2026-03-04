@@ -16,7 +16,7 @@
     },
     {
       "matches": ["https://ntulearn.ntu.edu.sg/*"],
-      "js": ["settings.js", "darktheme.js", "content.js", "courses.js", "courselinks.js", "outline.js", "viewer.js"],
+      "js": ["settings.js", "darktheme.js", "content.js", "courses.js", "courselinks.js", "outline.js", "viewer.js", "download.js"],
       "run_at": "document_start",
       "world": "MAIN"
     }

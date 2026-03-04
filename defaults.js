@@ -5,5 +5,6 @@ var DEFAULT_SETTINGS = {
   autoExpandFolders: true,
   expandDepth: 0,
   pdfViewer: true,
-  darkTheme: false
+  darkTheme: false,
+  surfaceDownload: true
 };
