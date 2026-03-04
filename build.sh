@@ -5,7 +5,12 @@
 set -e
 
 OUT="ntuitive.zip"
+EXCLUDE="README.md|STORE_LISTING.md|build.sh|.gitignore|icon.png"
+
 rm -f "$OUT"
 
-powershell -Command "Compress-Archive -Path manifest.json,popup.html,popup.js,settings.js,defaults.js,bridge.js,content.js,courses.js,courselinks.js,outline.js,viewer.js,darktheme.js,download.js,icon16.png,icon48.png,icon128.png,LICENSE -DestinationPath $OUT -Force"
+FILES=$(git ls-files | grep -Ev "^($EXCLUDE)$" | tr '\n' ',')
+FILES=${FILES%,}
+
+powershell -Command "Compress-Archive -Path $FILES -DestinationPath $OUT -Force"
 echo "Built $OUT"
