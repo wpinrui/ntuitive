@@ -1,6 +1,8 @@
 (function () {
   "use strict";
 
+  if (!window.__ntulearn.isEnabled("pdfViewer", true)) return;
+
   // === Constants ===
   const DOCUMENT_RE = /\/ultra\/courses\/[^/]+\/outline\/.+/;
   const STYLE_ID = "ntulearn-ext-viewer-style";

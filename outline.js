@@ -1,9 +1,16 @@
 (function () {
   "use strict";
 
+  if (!window.__ntulearn.isEnabled("autoExpandFolders", true)) return;
+
+  function getExpandDepth() {
+    const d = parseInt(window.__ntulearn.getSetting("expandDepth", 0), 10);
+    return d === 2 ? Infinity : (d === 1 ? 1 : 0);
+  }
+
   // === Constants ===
   const EXPAND_DELAY = 0; // ms before clicking the next folder (tune as needed)
-  const MAX_EXPAND_DEPTH = 0; // 0 = top-level only, 1 = +subfolders, Infinity = all
+  const MAX_EXPAND_DEPTH = getExpandDepth();
   const FOLDER_BTN_SELECTOR =
     'button[data-analytics-id="content.item.folder.toggleFolder.button"]';
   const OUTLINE_RE = /\/ultra\/courses\/[^/]+\/outline$/;

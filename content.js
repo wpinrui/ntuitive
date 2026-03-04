@@ -1,6 +1,8 @@
 (function () {
   "use strict";
 
+  if (!window.__ntulearn.isEnabled("backButtonFix", false)) return;
+
   // URL pattern helpers
   const DOCUMENT_RE =
     /\/ultra\/courses\/[^/]+\/outline\/.+/;

@@ -1,6 +1,8 @@
 (function () {
   "use strict";
 
+  if (!window.__ntulearn.isEnabled("courseSwitcher", true)) return;
+
   // === Constants ===
   const STORAGE_KEY = "ntulearn-ext-courses";
   const HIDDEN_KEY = "ntulearn-ext-hidden";

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 14px;
+      color: #1a1a1a;
+      background: #fff;
+      width: 320px;
+      padding: 16px;
+    }
+    h1 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #e5e5e5;
+    }
+    .setting {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+    }
+    .setting + .setting { border-top: 1px solid #f0f0f0; }
+    .setting-label { font-size: 13px; line-height: 1.3; }
+    .setting-desc { font-size: 11px; color: #888; margin-top: 2px; }
+    .toggle {
+      position: relative;
+      width: 40px;
+      height: 22px;
+      flex-shrink: 0;
+      margin-left: 12px;
+    }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle .slider {
+      position: absolute;
+      inset: 0;
+      background: #ccc;
+      border-radius: 22px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .toggle .slider::before {
+      content: "";
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      left: 3px;
+      bottom: 3px;
+      background: #fff;
+      border-radius: 50%;
+      transition: transform 0.2s;
+    }
+    .toggle input:checked + .slider { background: #4a90d9; }
+    .toggle input:checked + .slider::before { transform: translateX(18px); }
+    .sub-setting { padding: 4px 0 8px 12px; }
+    .sub-setting label { font-size: 12px; color: #555; }
+    .sub-setting select {
+      margin-left: 8px;
+      font-size: 12px;
+      padding: 2px 4px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .action-btn {
+      display: inline-block;
+      padding: 4px 10px;
+      font-size: 12px;
+      color: #c0392b;
+      background: none;
+      border: 1px solid #e0bcb8;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .action-btn:hover { background: #fdf0ef; }
+    .footer {
+      margin-top: 12px;
+      padding-top: 8px;
+      border-top: 1px solid #e5e5e5;
+      font-size: 11px;
+      color: #999;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <h1>NTULearn Nav Fix</h1>
+
+  <div class="setting">
+    <div>
+      <div class="setting-label">Back button fix</div>
+      <div class="setting-desc">Intercept close button to navigate back</div>
+    </div>
+    <label class="toggle">
+      <input type="checkbox" id="backButtonFix">
+      <span class="slider"></span>
+    </label>
+  </div>
+
+  <div class="setting">
+    <div>
+      <div class="setting-label">Course switcher</div>
+      <div class="setting-desc">Replace recent courses with searchable list</div>
+    </div>
+    <label class="toggle">
+      <input type="checkbox" id="courseSwitcher">
+      <span class="slider"></span>
+    </label>
+  </div>
+  <div class="sub-setting" id="courseSwitcherExtra">
+    <button class="action-btn" id="resetCacheBtn">Reset course cache</button>
+  </div>
+
+  <div class="setting">
+    <div>
+      <div class="setting-label">Course links fix</div>
+      <div class="setting-desc">Enable ctrl+click to open courses in new tab</div>
+    </div>
+    <label class="toggle">
+      <input type="checkbox" id="courseLinks">
+      <span class="slider"></span>
+    </label>
+  </div>
+
+  <div class="setting">
+    <div>
+      <div class="setting-label">Auto-expand folders</div>
+      <div class="setting-desc">Automatically open folders in course outline</div>
+    </div>
+    <label class="toggle">
+      <input type="checkbox" id="autoExpandFolders">
+      <span class="slider"></span>
+    </label>
+  </div>
+  <div class="sub-setting" id="expandDepthExtra">
+    <label>
+      Depth:
+      <select id="expandDepth">
+        <option value="0">Top-level only</option>
+        <option value="1">+ Subfolders</option>
+        <option value="2">All levels</option>
+      </select>
+    </label>
+  </div>
+
+  <div class="setting">
+    <div>
+      <div class="setting-label">PDF viewer fullscreen</div>
+      <div class="setting-desc">Expand document previews to fill viewport</div>
+    </div>
+    <label class="toggle">
+      <input type="checkbox" id="pdfViewer">
+      <span class="slider"></span>
+    </label>
+  </div>
+
+  <div class="footer">Changes take effect after page reload.</div>
+
+  <script src="defaults.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

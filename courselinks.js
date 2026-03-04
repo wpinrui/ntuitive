@@ -1,6 +1,8 @@
 (function () {
   "use strict";
 
+  if (!window.__ntulearn.isEnabled("courseLinks", true)) return;
+
   // === Constants ===
   const COURSES_PAGE_PATH = "/ultra/course";
   const LINK_SELECTOR = 'a.course-title[href="javascript:void(0);"]';

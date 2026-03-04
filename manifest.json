@@ -1,12 +1,22 @@
 {
   "manifest_version": 3,
   "name": "NTULearn Nav Fix",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Fixes navigation and enhances course switching in NTULearn (Blackboard Ultra).",
+  "permissions": ["storage"],
+  "action": {
+    "default_popup": "popup.html"
+  },
   "content_scripts": [
     {
       "matches": ["https://ntulearn.ntu.edu.sg/*"],
-      "js": ["content.js", "courses.js", "courselinks.js", "outline.js", "viewer.js"],
+      "js": ["defaults.js", "bridge.js"],
+      "run_at": "document_start",
+      "world": "ISOLATED"
+    },
+    {
+      "matches": ["https://ntulearn.ntu.edu.sg/*"],
+      "js": ["settings.js", "content.js", "courses.js", "courselinks.js", "outline.js", "viewer.js"],
       "run_at": "document_start",
       "world": "MAIN"
     }
