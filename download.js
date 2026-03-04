@@ -56,11 +56,20 @@
 
   // === Download ===
   function triggerDownload(courseId, contentId) {
-    window.open(
+    var apiBase = location.origin +
       "/learn/api/public/v1/courses/" + courseId +
-      "/contents/" + contentId + "/attachments/download",
-      "_blank"
-    );
+      "/contents/" + contentId + "/attachments";
+
+    fetch(apiBase, { credentials: "same-origin" })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (data.results && data.results.length > 0) {
+          window.open(apiBase + "/" + data.results[0].id + "/download", "_blank");
+        }
+      })
+      .catch(function (err) {
+        console.error("[NTULearn Nav Fix] Download failed:", err);
+      });
   }
 
   // === Scanning ===
