@@ -51,4 +51,41 @@
   style.textContent = buildCSS();
   (document.head || document.documentElement).appendChild(style);
   document.documentElement.classList.add(DARK_CLASS);
+
+  // === PDF viewer iframe background ===
+  // The PDF viewer renders inside a same-origin iframe whose URL may not
+  // match our content_scripts pattern.  Inject a background override
+  // directly via contentDocument so it survives the filter chain.
+  var PDF_STYLE_ID = STYLE_ID + "-pdf";
+  var patchedIframes = new WeakSet();
+
+  function patchPdfIframe() {
+    var iframe = document.querySelector("bb-file-preview iframe");
+    if (!iframe || patchedIframes.has(iframe)) return;
+    patchedIframes.add(iframe);
+    function inject() {
+      try {
+        var doc = iframe.contentDocument;
+        if (!doc || doc.getElementById(PDF_STYLE_ID)) return;
+        var s = doc.createElement("style");
+        s.id = PDF_STYLE_ID;
+        s.textContent = ".page-container{background-color:#222 !important}";
+        (doc.head || doc.documentElement).appendChild(s);
+      } catch (_) {}
+    }
+    inject();
+    iframe.addEventListener("load", inject);
+  }
+
+  function startPdfWatch() {
+    patchPdfIframe();
+    new MutationObserver(patchPdfIframe)
+      .observe(document.body, { childList: true, subtree: true });
+  }
+
+  if (document.body) {
+    startPdfWatch();
+  } else {
+    document.addEventListener("DOMContentLoaded", startPdfWatch);
+  }
 })();
