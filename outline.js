@@ -4,7 +4,7 @@
   if (!window.__ntulearn.isEnabled("autoExpandFolders", true)) return;
 
   function getExpandDepth() {
-    var d = parseInt(window.__ntulearn.getSetting("expandDepth", 0), 10);
+    const d = parseInt(window.__ntulearn.getSetting("expandDepth", 0), 10);
     return d === 2 ? Infinity : (d === 1 ? 1 : 0);
   }
 

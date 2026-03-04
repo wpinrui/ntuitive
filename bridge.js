@@ -5,21 +5,22 @@
   var COURSES_KEY = "ntulearn-ext-courses";
   var HIDDEN_KEY = "ntulearn-ext-hidden";
 
-  // Sync chrome.storage.local -> localStorage on page load
-  chrome.storage.local.get("settings", function (result) {
-    var settings = Object.assign({}, DEFAULT_SETTINGS, result.settings || {});
+  function syncToLocal(raw) {
+    var settings = Object.assign({}, DEFAULT_SETTINGS, raw || {});
     try {
       localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
     } catch (_) {}
+  }
+
+  // Sync chrome.storage.local -> localStorage on page load
+  chrome.storage.local.get("settings", function (result) {
+    syncToLocal(result.settings);
   });
 
   // Live-sync when settings change (e.g. popup is open while page is loaded)
   chrome.storage.onChanged.addListener(function (changes, area) {
     if (area !== "local" || !changes.settings) return;
-    var settings = Object.assign({}, DEFAULT_SETTINGS, changes.settings.newValue || {});
-    try {
-      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-    } catch (_) {}
+    syncToLocal(changes.settings.newValue);
   });
 
   // Handle messages from popup (e.g. reset course cache)
