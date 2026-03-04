@@ -86,7 +86,7 @@
       observer = null;
     }
     lastTop = -1;
-    var preview = document.querySelector("bb-file-preview");
+    const preview = document.querySelector("bb-file-preview");
     if (preview) preview.style.height = "";
     removeStyles();
   }
